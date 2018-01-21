@@ -4,13 +4,27 @@ const jwt = require("jsonwebtoken");
 const config = require("../config/config");
 
 function ClassController() {
-    this.getAll = function(req, res, next) {
-        classModel.get({}, function(err, clases) {
-            if (err) {
-                next(err)
-            }
-            res.json({ clases: clases });
-        });
+    this.get = function(req, res, next) {
+        var id = req.query.id;
+        var data = {};
+        if (id) {
+            data.class = id;
+            userModel.find(data)
+                .populate("class name")
+                .exec(function(err, data) {
+                    if (err) return next(err);
+                    res.send(data);
+                })
+        }
+        else {
+            classModel.find(data, function(err, clases) {
+                if (err) {
+                    next(err)
+                }
+                res.json({ clases: clases });
+            });
+        }
+
     };
     this.create = function(req, res, next) {
         var data = {
@@ -23,18 +37,7 @@ function ClassController() {
             res.json({ clases: clases });
         })
     };
-    this.get = function(req, res, next) {
-        var data = {
-            class: req.params.id
-        };
-        userModel.get(data, function(err, data) {
-            if (err) {
-                next(err);
-            }
-            res.json({ "userClass": data });
-        })
 
-    };
 };
 
 module.exports = ClassController;

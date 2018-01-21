@@ -1,21 +1,28 @@
-var mainModel = require("./mainModel.js");
-let Schema = require('mongoose').Schema;
-var friendsSchema = {
-    userSend: {
+let mongoose = require('mongoose');
+let Schema = mongoose.Schema;
+var friendsSchema = new Schema({
+    userOne: {
         type: Schema.Types.ObjectId,
-        res: "user"
+        res: "user",
+        required: true
     },
-    userGet: {
+    userTwo: {
         type: Schema.Types.ObjectId,
-        res: "user"
+        res: "user",
+        required: true
     },
     status: {
         type: Boolean,
         default: false
     },
+    isChat: {
+        type: Boolean,
+        default: false
+    },
     action_user_id: {
         type: Schema.Types.ObjectId,
-        res: "user"
+        res: "user",
+        required: true
     },
     dataCreate: {
         type: Date,
@@ -24,7 +31,6 @@ var friendsSchema = {
     dataConfirm: {
         type: Date
     }
-}
-var friendsModel = new mainModel(friendsSchema, 'friends');
-
+})
+var friendsModel = mongoose.model('friends', friendsSchema)
 module.exports = friendsModel;

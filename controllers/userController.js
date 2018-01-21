@@ -8,61 +8,62 @@ function UserController() {
     this.Change = function(req, res, next) {
         var id = req.body.userid;
         var data = req.body.userData;
-        userModel.change(id, data, function(err, person) {
+        userModel.findOneAndUpdate(id, data, function(err, person) {
             if (err) return next(err);
             res.json({ s: 1 });
         });
 
     };
 
-    this.GetAll = function(req, res, next) {
-        userModel.get({}, function(err, docs) {
-            if (err) {
-                next(err)
-            }
-            res.send(docs);
-        });
-    };
-
     this.Get = function(req, res, next) {
-        userModel.getUser(function(err, docs) {
-            if (err) {
-                next(err)
-            }
-            res.send(docs);
-        });
-    }
+        // if /user get all 
 
+        var id = req.body.userid;
+        var data = {
+            _id: { $ne: id },
+        };
+
+
+        //if /user/:id get by id
+        var idUser = req.params.id;
+        if (idUser) {
+            data["_id"] = idUser;
+        }
+        console.log(req.query.count, req.query.page)
+        userModel.find(data)
+            .limit(Number(req.query.count) || 20)
+            .skip(Number(req.query.count) * Number(req.query.page) || 0)
+            .populate("class name")
+            .sort('-update')
+            .exec(function(err, result) {
+                if (err) return next(err);
+                if (idUser) {
+                    friendsModel.findOne({
+                        $or: [{ userOne: req.body.userid, userTwo: idUser, status: true }, { userTwo: req.body.userid, userOne: idUser, status: true }]
+                    }, function(err, result2) {
+                        if (err) return next(err);
+                        if (result2) {
+                            res.json({ s: 1, data: { "user": result, "friend": result2 } });
+                        }
+                        else {
+                            res.json({ s: 1, data: { "user": result, "friend": null } });
+                        }
+                    })
+                }
+                else {
+                    res.send(result);
+                }
+
+            })
+    }
     this.Delete = function(req, res, next) {
-        userModel.deleteUser(function(err, docs) {
-            if (err) {
-                next(err)
-            }
-            res.status(200);
+        var id = req.body.userid;
+        userModel.findOneAndRemove({ "_id": id }, function(err) {
+            if (err) return next(err);
+            res.json({ s: 1 }).status(200);
         });
     }
-    this.addToFriends = function(req, res, next) {
-        var data = {
-            userSend: req.body.userid,
-            userGet: req.body.id,
-            action_user_id: req.body.userid
-        }
-        friendsModel.create(data, function(err, data) {
-            if (err) return next(err);
-            res.json(data)
-        })
 
-    }
-    this.getFriends = function(res, req, next) {
-        var data = {
-            id: req.body.userid,
-            status: true
-        }
-        friendsModel.find(data, function(err, result) {
-            if (err) return next(err);
-            res.json(result);
-        })
-    }
     this.UploadAvatar = function(req, res, next) {
         var id = req.body.userid;
         var datanow = String(Date.now());
@@ -80,13 +81,14 @@ function UserController() {
         userModel.get({ "_id": id }, function(err, persone) {
             if (err) return next(err);
             upload(req, res, function(err) {
-                if (err) { return next(err) };
+                if (err) return next(err);
+                console.log(persone)
                 if (persone[0].uploadAvatar) {
                     if (fs.existsSync(config.pathstatic + 'avatar/' + persone[0].avatar)) {
                         fs.unlinkSync(config.pathstatic + 'avatar/' + persone[0].avatar);
                     }
                 }
-                userModel.change(id, { avatar: avatar, uploadAvatar: datanow }, function(err, person) {
+                userModel.findOneAndUpdate(id, { avatar: avatar, uploadAvatar: datanow }, function(err, person) {
                     if (err) return next(err);
                     res.status(200).json(avatar)
                 })

@@ -1,6 +1,7 @@
 const userModel = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const config = require("../config/config");
+
 function RegisterController(req, res, next) {
     var data = {
         firstname: req.body.firstname,
@@ -11,17 +12,16 @@ function RegisterController(req, res, next) {
         class: req.body.class
 
     };
-    console.log(data)
-    userModel.get({email: data.email}, function (err, persone) {
+    userModel.find({ email: data.email }, function(err, persone) {
         if (err) return next(err);
         if (!persone.length) {
-            userModel.create(req.body, function (err, person) {
+            userModel.create(req.body, function(err, person) {
                 if (err) return next(err);
-                console.log(person)
-                res.json({"token": jwt.sign({id: person['_id']}, config.secretkey), "userdata": person})
+                res.json({ "token": jwt.sign({ id: person['_id'] }, config.secretkey), "userdata": person })
             })
-        } else {
-            res.json({s: 0, m: "User exist!"})
+        }
+        else {
+            res.json({ s: 0, m: "User exist!" })
         }
     })
 };

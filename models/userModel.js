@@ -1,7 +1,6 @@
-var mainModel = require("./mainModel");
 let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
-var userSchema = {
+var userSchema = new Schema({
     firstname: {
         type: String,
         reqiured: true
@@ -19,21 +18,22 @@ var userSchema = {
         type: String,
         reqiured: true
     },
+
     email: {
         type: String,
-        reqiured: true
+        reqiured: true,
+        unique: true,
+    },
+    friends: {
+        type: [String],
+        ref: "friends"
     },
     avatar: String,
     uploadAvatar: {
         type: String,
     },
     update: Date
-};
-var userModel = new mainModel(userSchema, 'user');
-userModel.getAllUserClass = function(id, cb) {
-    // userModel.model.;
+});
 
-
-}
-userModel.getAllUserClass();
+var userModel = mongoose.model('user', userSchema);
 module.exports = userModel;
