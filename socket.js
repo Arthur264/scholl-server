@@ -2,17 +2,14 @@ var chatMessageModel = require("./models/chatModel").chatMessageModel;
 var chatRoomModel = require("./models/chatModel").chatRoomModel;
 module.exports = function(app) {
     var io = require('socket.io').listen(app);
-    // var users = [];
-    var connections = [];
+    var users = [];
     io.on('connection', function(socket) {
-        connections.push(socket.id);
-        // console.log('connections', connections);
-        socket.on('disconnect', function(data) {
-            connections.slice(connections.indexOf(socket), 1);
+        users.push(socket.id);
+        socket.on('disconnect', function(id) {
+            users.slice(users.indexOf(id), 1);
+            console.log(users, id)
         })
-        socket.on('new-friend', (id) => {
-            // console.log(id);
-        });
+        socket.on('new-friend', (id) => {});
         socket.on('new-message', (idroom, mes, id) => {
             chatRoomModel.find({ _id: idroom }, function(err, results) {
                 if (err) {
